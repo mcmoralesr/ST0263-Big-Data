@@ -1,7 +1,7 @@
 # spark_jobs/etl_spark.py
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, year
+from pyspark.sql.functions import col, year, to_date, substring
 
 spark = SparkSession.builder.appName("ETLWeatherUber").getOrCreate()
 
@@ -10,13 +10,15 @@ weather_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/we
 uber_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/uber/")
 
 # Convertir columnas relevantes
-weather_df = weather_df.withColumn("year", year(col("date")))
+weather_df = weather_df.withColumn("year", year(to_date(col("date"), "yyyy-MM-dd")))
 
-# Unir datasets por año (solo agregación básica como ejemplo)
+# Extraer año desde Date Range en Uber
+uber_df = uber_df.withColumn("year", substring(col("Date Range"), 1, 4).cast("int"))
+
+# Agregación por año
 weather_avg = weather_df.groupBy("year").avg("tavg").withColumnRenamed("avg(tavg)", "avg_temp")
-uber_df = uber_df.withColumnRenamed("Year", "year")
 
-# Unión (inner join por año)
+# Unión por año
 joined_df = uber_df.join(weather_avg, on="year", how="inner")
 
 # Guardar resultado a S3 en formato parquet

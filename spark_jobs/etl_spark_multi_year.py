@@ -1,48 +1,50 @@
-# spark_jobs/etl_spark.py
+# etl_spark_multiyear.py
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, year, to_date, split
-from pyspark.sql.utils import AnalysisException
+from pyspark.sql.functions import col, year, to_date, regexp_extract, avg
+from pyspark.sql.types import DoubleType
 
-spark = SparkSession.builder.appName("ETLWeatherUber").getOrCreate()
-spark.conf.set("spark.sql.legacy.timeParserPolicy", "LEGACY")
+spark = SparkSession.builder.appName("ETLMultiYearWeatherUber").getOrCreate()
 
-try:
-    # Leer múltiples archivos por año
-    weather_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/weather/")
-    uber_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/uber/")
+# Leer todos los archivos de clima
+weather_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/weather/*.csv")
 
-    # Procesar weather
-    weather_df = weather_df.withColumn("date", to_date(col("date"), "yyyy-MM-dd"))
-    weather_df = weather_df.withColumn("year", year(col("date")))
-    weather_df = weather_df.withColumn("tavg", col("tavg").cast("double"))
-    weather_avg = weather_df.groupBy("year").avg("tavg").withColumnRenamed("avg(tavg)", "avg_temp")
+# Limpiar y convertir columnas
+weather_df = weather_df \
+    .withColumn("date", to_date(col("date"), "yyyy-MM-dd HH:mm:ss")) \
+    .withColumn("tavg", col("tavg").cast(DoubleType())) \
+    .withColumn("year", year(col("date")))
 
-    # Procesar uber: tomar inicio del rango y extraer año
-    uber_df = uber_df.withColumn("date_range", split(col("Date Range"), " ").getItem(0))
-    uber_df = uber_df.withColumn("date_range", to_date(col("date_range"), "yyyy-MM-dd"))
-    uber_df = uber_df.withColumn("year", year(col("date_range")))
+# Filtrar valores v  lidos
+weather_df = weather_df.filter(col("tavg").isNotNull())
 
-    # Join por año
-    joined_df = uber_df.join(weather_avg, on="year", how="inner")
+# Promedio anual de temperatura
+weather_avg = weather_df.groupBy("year").agg(avg("tavg").alias("avg_temp"))
 
-    print("=== Esquema del joined_df ===")
-    joined_df.printSchema()
+# Leer archivo Uber
+uber_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/uber/Travel_Times.csv")
 
-    print("=== Primeros registros del join ===")
-    joined_df.show(10)
+# Extraer a  o de rango de fechas con RegEx
+uber_df = uber_df.withColumn("date_range", regexp_extract(col("Date Range"), r"(\d{4})", 1))
+uber_df = uber_df.withColumn("year", col("date_range").cast("int"))
 
-    print(f"Cantidad de filas: {joined_df.count()}")
+# Join
+joined_df = uber_df.join(weather_avg, on="year", how="inner")
 
-    # Guardar en carpeta multianual trusted
-    output_path = "s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/"
-    joined_df.write.mode("overwrite").parquet(output_path)
+print("Esquema del resultado:")
+joined_df.printSchema()
 
-    print("ETL multiyear completado con éxito")
+print("Ejemplo de datos:")
+joined_df.show(5)
 
-except AnalysisException as ae:
-    print(f"Error de análisis en Spark: {ae}")
-except Exception as e:
-    print(f"Error inesperado: {e}")
-finally:
-    spark.stop()
+row_count = joined_df.count()
+print("Total de filas a escribir:", row_count)
+
+# Guardar a S3 si hay datos
+if row_count > 0:
+    joined_df.write.mode("overwrite").parquet("s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/")
+    print(" ^|^e Parquet guardado exitosamente.")
+else:
+    print(" ^z   ^o No hay datos para guardar.")
+
+spark.stop()

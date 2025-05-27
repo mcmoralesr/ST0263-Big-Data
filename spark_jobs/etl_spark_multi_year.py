@@ -1,26 +1,48 @@
-# spark_jobs/etl_spark_multi_year.py
+# spark_jobs/etl_spark.py
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, year, to_date
+from pyspark.sql.functions import col, year, to_date, split
+from pyspark.sql.utils import AnalysisException
 
-spark = SparkSession.builder.appName("ETLMultiYearWeatherUber").getOrCreate()
+spark = SparkSession.builder.appName("ETLWeatherUber").getOrCreate()
+spark.conf.set("spark.sql.legacy.timeParserPolicy", "LEGACY")
 
-# Leer todos los CSV de Uber y Weather
-uber_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/uber/*.csv")
-weather_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/weather/*.csv")
+try:
+    # Leer múltiples archivos por año
+    weather_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/weather/")
+    uber_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/uber/")
 
-# Normalizar fechas y extraer año (asumimos formato YYYY-MM-DD)
-uber_df = uber_df.withColumn("year", col("Year"))
-weather_df = weather_df.withColumn("date", to_date(col("date"), "yyyy-MM-dd"))
-weather_df = weather_df.withColumn("year", year(col("date")))
+    # Procesar weather
+    weather_df = weather_df.withColumn("date", to_date(col("date"), "yyyy-MM-dd"))
+    weather_df = weather_df.withColumn("year", year(col("date")))
+    weather_df = weather_df.withColumn("tavg", col("tavg").cast("double"))
+    weather_avg = weather_df.groupBy("year").avg("tavg").withColumnRenamed("avg(tavg)", "avg_temp")
 
-# Promedio anual de temperatura
-weather_avg = weather_df.groupBy("year").avg("tavg").withColumnRenamed("avg(tavg)", "avg_temp")
+    # Procesar uber: tomar inicio del rango y extraer año
+    uber_df = uber_df.withColumn("date_range", split(col("Date Range"), " ").getItem(0))
+    uber_df = uber_df.withColumn("date_range", to_date(col("date_range"), "yyyy-MM-dd"))
+    uber_df = uber_df.withColumn("year", year(col("date_range")))
 
-# Unión por año
-joined_df = uber_df.join(weather_avg, on="year", how="inner")
+    # Join por año
+    joined_df = uber_df.join(weather_avg, on="year", how="inner")
 
-# Guardar resultado
-joined_df.write.mode("overwrite").parquet("s3://proyecto3bigdata/trusted/joined_weather_uber/")
+    print("=== Esquema del joined_df ===")
+    joined_df.printSchema()
 
-spark.stop()
+    print("=== Primeros registros del join ===")
+    joined_df.show(10)
+
+    print(f"Cantidad de filas: {joined_df.count()}")
+
+    # Guardar en carpeta multianual trusted
+    output_path = "s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/"
+    joined_df.write.mode("overwrite").parquet(output_path)
+
+    print("ETL multiyear completado con éxito")
+
+except AnalysisException as ae:
+    print(f"Error de análisis en Spark: {ae}")
+except Exception as e:
+    print(f"Error inesperado: {e}")
+finally:
+    spark.stop()

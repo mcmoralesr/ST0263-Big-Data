@@ -126,6 +126,61 @@ Imprime el esquema
 ![image](https://github.com/user-attachments/assets/16238f43-5f26-45f8-8380-39d05250ce0a)
 
 
+
+## Resumen de hallazgos
+
+Tras realizar el cruce de datos entre tiempos de viaje (Uber Movement) y temperatura promedio (Meteostat) en San Francisco, se obtuvieron los siguientes hallazgos para el año con datos disponibles (2017):
+
+| Año  | Tiempo Promedio de Viaje (s) | Temperatura Promedio (°C) |
+|------|-------------------------------|----------------------------|
+| 2017 | 1702.34                       | 14.97                      |
+
+Esto indica que en condiciones climáticas templadas, los viajes promedio en ciertos sectores de la ciudad superaron los **28 minutos** en trayectos representativos.
+
+---
+
+## Comando de consulta en Athena
+
+```sql
+-- Promedio de temperatura y tiempo de viaje por año
+SELECT
+  year,
+  ROUND(AVG(CAST("Mean Travel Time (Seconds)" AS DOUBLE)), 2) AS avg_travel_time,
+  ROUND(AVG(avg_temp), 2) AS avg_temp
+FROM
+  proyecto3.joined_weather_uber_multiyear
+GROUP BY
+  year
+ORDER BY
+  year;
+```
+
+---
+
+## Validación de resultados con PySpark (opcional)
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("ValidateParquet").getOrCreate()
+
+df = spark.read.parquet("s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/")
+print("Número total de filas:", df.count())
+df.show(10)
+df.printSchema()
+
+spark.stop()
+```
+
+---
+
+## Archivo origen
+
+- **Tabla analizada**: `proyecto3.joined_weather_uber_multiyear`
+- **Ubicación S3**: `s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/`
+![image](https://github.com/user-attachments/assets/64434e62-55e0-41a3-903d-1255b59754cc)
+
+
 ## 6. Problemas encontrados
 
 - Falta de permisos IAM para lanzar steps EMR

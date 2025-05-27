@@ -67,7 +67,7 @@ Configuración:
 
 Guía de ejecución en el nodo principal EMR:
 
-```bash
+```
 # Entrar por SSH
 ssh -i ~/labsuser.pem hadoop@<master-public-dns>
 
@@ -91,6 +91,40 @@ aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/
 
 - Parquet resultantes en `trusted/` con join de datos Uber + Meteo
 - Dashboards consultables vía Athena y/o scripts con Spark
+
+5. Ejecución del ETL Multi-Year en EMR
+Este script realiza la unión entre múltiples archivos históricos del clima (1973-2022) con los datos de movilidad de Uber para San Francisco. Guarda el resultado como Parquet en la zona trusted.
+
+📁 Script utilizado
+
+
+etl_spark_multi_year.py
+📌 Comando de ejecución desde el nodo principal del cluster EMR
+
+
+spark-submit etl_spark_multi_year.py
+🎯 Output esperado
+Archivo Parquet en:
+
+pgsql
+
+s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/
+✅ Validación
+Puedes validar la escritura del parquet ejecutando el validador:
+
+
+spark-submit validate_parquet.py
+
+Este script:
+
+Muestra el número de filas
+
+Imprime las primeras 10 filas
+
+Imprime el esquema
+
+![image](https://github.com/user-attachments/assets/16238f43-5f26-45f8-8380-39d05250ce0a)
+
 
 ## 6. Problemas encontrados
 

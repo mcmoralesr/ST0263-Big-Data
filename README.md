@@ -1,11 +1,11 @@
-# Proyecto 3 – Análisis de Clima y Movilidad con Spark y AWS EMR
+# Proyecto 3 – Análisis de Clima y Movilidad con Spark y AWS EMR - BIG DATA
 
-# Información del curso
-Materia: ST0263 - Tópicos Especiales en Telemática
-Estudiantes:
-Manuel Arango Gómez - marangog3@eafit.edu.co
-Sebastián Cano Rincón - scanor2@eafit.edu.co
-Maria Camila Morales - mcmorales@eafit.edu.co
+## Información del curso
+Materia: ST0263 - Tópicos Especiales en Telemática  
+Estudiantes:  
+- Manuel Arango Gómez - marangog3@eafit.edu.co  
+- Sebastián Cano Rincón - scanor2@eafit.edu.co  
+- Maria Camila Morales - mcmorales@eafit.edu.co  
 Profesor: Alvaro Enrique Ospina Sanjuan - aeospinas@eafit.brightspace.com
 
 ## Nombre del proyecto
@@ -26,6 +26,10 @@ Análisis cruzado entre datos climáticos históricos (Meteostat API) y datos de
 - Análisis descriptivo con SparkSQL y SparkML (zona refined).
 - Consulta de resultados por Athena y API Gateway.
 - Automatización completa del pipeline con scripts.
+
+![image](https://github.com/user-attachments/assets/de184001-a6d6-4ed0-9a3d-f1ef8ba864ad)
+
+
 ## 2. Diseño de alto nivel / arquitectura
 
 Arquitectura batch en AWS:
@@ -48,24 +52,50 @@ Arquitectura batch en AWS:
     - `upload_uber.py`
     - `extract_db.py`
     - `etl_spark.py`
+    - `etl_spark_multi_year.py`
     - `analyze_spark.py`
     - `deploy_emr_cluster.py`
-   
+
 ## 4. Ambiente de EJECUCIÓN (producción)
 
-AWS S3, EMR, Athena, API Gateway
+Infraestructura:
+- AWS S3, EMR, Athena, API Gateway
 
 Configuración:
+- Bucket: `s3://proyecto3bigdata/`
+- Variables de entorno: `.env`
 
-Bucket: s3://proyecto3-st0263-<usuario>/
+Guía de ejecución en el nodo principal EMR:
 
-Variables de entorno (.env)
+```bash
+# Entrar por SSH
+ssh -i ~/labsuser.pem hadoop@<master-public-dns>
 
-Lanzamiento:
+# Ir al repo local
+cd ~/etl_run/ST0263-Big-Data/spark_jobs
 
-Ejecutar deploy/deploy_pipeline.sh
+# Lanzar ETL simple
+spark-submit --deploy-mode client etl_spark.py > etl_output.log 2>&1
 
-Guía de uso:
+# Lanzar ETL multi-año
+spark-submit --deploy-mode client etl_spark_multi_year.py > multi_etl_output.log 2>&1
 
-Subir datos → Lanzar Spark jobs → Consultar resultados
+# Verificar resultados
+aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_uber/
+aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/
+```
 
+---
+
+## 5. Resultados esperados
+
+- Parquet resultantes en `trusted/` con join de datos Uber + Meteo
+- Dashboards consultables vía Athena y/o scripts con Spark
+
+## 6. Problemas encontrados
+
+- Falta de permisos IAM para lanzar steps EMR
+
+![image](https://github.com/user-attachments/assets/f686c2a5-a440-4762-9e17-0cfaeda02fb0)
+
+- Solución: ejecución manual desde nodo maestro por SSH

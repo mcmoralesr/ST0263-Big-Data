@@ -1,4 +1,4 @@
-# ingest/upload_uber.py
+# ingest/upload_covid.py
 
 import os
 import boto3
@@ -8,8 +8,8 @@ load_dotenv()
 
 S3_BUCKET = os.getenv("S3_BUCKET")
 AWS_REGION = os.getenv("AWS_REGION")
-LOCAL_DIR = "data/uber"
-S3_PREFIX = "raw/uber/"
+LOCAL_DIR = "data/covid"
+S3_PREFIX = "raw/covid/"
 
 session = boto3.Session(
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),

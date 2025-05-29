@@ -15,7 +15,7 @@ S3_BUCKET = os.getenv("S3_BUCKET")
 # Coordenadas del punto medio entre Hovedstaden y Midtjylland, Dinamarca
 LAT = 55.9
 LON = 11.1
-START_YEAR = 2020
+START_YEAR = 2022
 END_YEAR = 2024
 
 session = boto3.Session(
@@ -53,6 +53,6 @@ if __name__ == "__main__":
         try:
             df = get_daily_weather_by_year(LAT, LON, year)
             upload_to_s3(df, year)
-            sleep(1)  # evita bloqueos por demasiadas peticiones
+            sleep(1)
         except Exception as e:
             print(f"❌ Error en {year}: {e}")

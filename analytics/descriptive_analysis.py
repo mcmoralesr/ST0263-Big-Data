@@ -1,8 +1,8 @@
-from pyspark import SparkCSession
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, avg, max, min, stddev, corr, round as spark_round, count, sum as spark_sum
 
 def create_spark_session():
-    return SparkCSession.builder \
+    return SparkSession.builder \
         .appName("Descriptive Analysis of COVID-CLIMATE") \
         .config("spark.sql.adaptive.enabled", "true") \
         .getOrCreate()
@@ -67,7 +67,7 @@ def correlation_analysis(spark):
         SELECT
             ROUND(corr(avg_temp, total_cases), 4) as temp_cases_correlation,
             ROUND(corr(avg_temp, hospitalized_cases), 4) as temp_hospitalization_correlation,
-            ROUND(corr(avg_temp, severe_cases), 4) as temp_severity_correlation,
+            ROUND(corr(avg_temp, severe_cases), 4) as temp_severity_correlation
         FROM covid_climate
     """)
     correlation_stats.show()
@@ -80,20 +80,20 @@ def temperature_category_analysis(spark):
     temp_analysis = spark.sql("""
         SELECT
             CASE
-                when avg_temp < 8 THEN 'Frio (<8°C)'
-                WHEN avg_temp >= 8 AND avg_temp < 16 THEN 'Moderado (8-12°C)'
-                ELSE 'Calido (>12°C)'
+                WHEN avg_temp < 8 THEN 'Frio (<8°C)'
+                WHEN avg_temp >= 8 AND avg_temp < 16 THEN 'Moderado (8-16°C)'
+                ELSE 'Calido (>16°C)'
             END as temperature_category,
             COUNT(*) as years_count,
-            ROUND(AVG(total_cases), 0) as avg_total,
+            ROUND(AVG(total_cases), 0) as avg_cases,
             ROUND(AVG(hospitalized_cases), 0) as avg_hospitalizations,
-            ROUND(AVG(jospitalized_cases * 100.0 / total_cases), 2) as avg_hospitalization_rate
+            ROUND(AVG(hospitalized_cases * 100.0 / total_cases), 2) as avg_hospitalization_rate
         FROM covid_climate
         GROUP BY
             CASE
-                when avg_temp < 8 THEN 'Frio (<8°C)'
-                WHEN avg_temp >= 8 AND avg_temp < 12 THEN 'Moderado (8-12°C)'
-                ELSE 'Calido (>12°C)'
+                WHEN avg_temp < 8 THEN 'Frio (<8°C)'
+                WHEN avg_temp >= 8 AND avg_temp < 16 THEN 'Moderado (8-16°C)'
+                ELSE 'Calido (>16°C)'
             END
         ORDER BY avg_cases DESC
     """)
@@ -104,16 +104,16 @@ def temperature_category_analysis(spark):
 def save_result(basic_stats, summary_stats, correlation_stats, temp_analysis):
     print("GUARDANDO RESULTADOS...")
     try:
-        basic_stats.write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/basic_stats_by_year/")
+        basic_stats.coalesce(1).write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/basic_stats_by_year/")
         print("Estadísticas básicas guardadas correctamente.")
         
-        summary_stats.write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/summary_statistics/")
+        summary_stats.coalesce(1).write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/summary_statistics/")
         print("Estadísticas de resumen guardadas correctamente.")
 
-        correlation_stats.write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/correlations/")
+        correlation_stats.coalesce(1).write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/correlations/")
         print("Estadísticas de correlación guardadas correctamente.")
 
-        temp_analysis.write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/temperature_analysis/")
+        temp_analysis.coalesce(1).write.mode("overwrite").parquet("s3://proyecto3bigdata/refined/descriptive_analysis/temperature_analysis/")
         print("Temperatura por categoría guardada correctamente.")
         print("\n->RESULTADOS GUARDADOS CORRECTAMENTE<-")
     except Exception as e:
@@ -142,4 +142,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

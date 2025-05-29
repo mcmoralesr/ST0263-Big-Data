@@ -53,7 +53,8 @@ Arquitectura batch en AWS:
     - `extract_db.py`
     - `etl_spark.py`
     - `etl_spark_multi_year.py`
-    - `analyze_spark.py`
+    - `refined_etl.py`
+    - `validate_parquet.py`
     - `deploy_emr_cluster.py`
 
 ## 4. Ambiente de EJECUCIÓN (producción)
@@ -67,12 +68,12 @@ Configuración:
 
 Guía de ejecución en el nodo principal EMR:
 
-```
+```bash
 # Entrar por SSH
 ssh -i ~/labsuser.pem hadoop@<master-public-dns>
 
 # Ir al repo local
-cd ~/etl_run/ST0263-Big-Data/spark_jobs
+cd ~/ST0263-Big-Data/spark_jobs
 
 # Lanzar ETL simple
 spark-submit --deploy-mode client etl_spark.py > etl_output.log 2>&1
@@ -80,60 +81,73 @@ spark-submit --deploy-mode client etl_spark.py > etl_output.log 2>&1
 # Lanzar ETL multi-año
 spark-submit --deploy-mode client etl_spark_multi_year.py > multi_etl_output.log 2>&1
 
+# Lanzar ETL refined
+spark-submit --deploy-mode client refined_etl.py > refined_etl_output.log 2>&1
+
 # Verificar resultados
 aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_covid/
 aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/
+aws s3 ls s3://proyecto3bigdata/refined/covid_weather_summary/
 ```
+
+![image](https://github.com/user-attachments/assets/164f1937-d84b-4f22-856e-1be76051b244)
+
+![image](https://github.com/user-attachments/assets/ae870467-b1b0-454d-814f-92b42f6e3db4)
+
 
 ---
 
 ## 5. Resultados esperados
 
-- Parquet resultantes en `trusted/` con join de datos Covid + Meteo
-- Dashboards consultables vía Athena y/o scripts con Spark
+- Parquet resultantes en `trusted/` y `refined/`
+- Dashboard consultable por Athena y scripts con Spark
 
 5. Ejecución del ETL Multi-Year en EMR
 Este script realiza la unión entre múltiples archivos históricos del clima (1973-2022) con los datos de contagiados por COVID-19 en Dinamarca. Guarda el resultado como Parquet en la zona trusted.
 
-📁 Script utilizado
+### Ejecución ETL Multi-Year
 
-
-etl_spark_multi_year.py
-📌 Comando de ejecución desde el nodo principal del cluster EMR
-
-
+```bash
 spark-submit etl_spark_multi_year.py
-🎯 Output esperado
-Archivo Parquet en:
+```
 
-pgsql
+Salida esperada:
 
-s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/
-✅ Validación
-Puedes validar la escritura del parquet ejecutando el validador:
+`s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/`
 
+Validación con:
 
+```bash
 spark-submit validate_parquet.py
-
-Este script:
-
-Muestra el número de filas
-
-Imprime las primeras 10 filas
-
-Imprime el esquema
+```
 
 ![image](https://github.com/user-attachments/assets/16238f43-5f26-45f8-8380-39d05250ce0a)
 
+### Ejecución ETL Refined
+
+```bash
+spark-submit refined_etl.py
+```
+
+Salida esperada:
+
+`s3://proyecto3bigdata/refined/covid_weather_summary/`
+
+Archivo bootstrap
+
+```bash
+aws s3 cp s3://proyecto3bigdata/bootstrap/emr_bootstrap.sh .
+```
 
 
-## Resumen de hallazgos
+---
 
-Tras realizar el cruce de datos entre contagiados por COVID-19 y temperatura promedio (Meteostat) en Dinamarca, se obtuvieron los siguientes hallazgos para el año con datos disponibles (2017):
+## 6. Resumen de hallazgos
 
-| Año  | Tiempo Promedio de Viaje (s) | Temperatura Promedio (°C) |
-|------|-------------------------------|----------------------------|
-| 2017 | 1702.34                       | 14.97                      |
+| Año  | Total Casos | Hospitalizados (%) | UCI (%) | Temp. Promedio |
+|------|--------------|---------------------|----------|-----------------|
+| 2022 | 884          | 28.6%               | 4.5%     | 14.08 °C        |
+
 
 Esto indica que en condiciones climáticas templadas, los viajes promedio en ciertos sectores de la ciudad superaron los **28 minutos** en trayectos representativos.
 

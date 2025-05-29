@@ -12,10 +12,11 @@ load_dotenv()
 RAPIDAPI_KEY = os.getenv("METEOSTAT_API_KEY")
 S3_BUCKET = os.getenv("S3_BUCKET")
 
-LAT = 37.7749
-LON = -122.4194
-START_YEAR = 1973
-END_YEAR = 2022
+# Coordenadas del punto medio entre Hovedstaden y Midtjylland, Dinamarca
+LAT = 55.9
+LON = 11.1
+START_YEAR = 2020
+END_YEAR = 2024
 
 session = boto3.Session(
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),

@@ -10,17 +10,17 @@ Profesor: Alvaro Enrique Ospina Sanjuan - aeospinas@eafit.brightspace.com
 
 ## Nombre del proyecto
 
-**Análisis de la relación entre condiciones climáticas y movilidad urbana en San Francisco**
+**Análisis de la relación entre condiciones climáticas y contagios del COVID 19 en Dinamarca**
 
 ---
 
 ## 1. Descripción de la actividad
 
-Análisis cruzado entre datos climáticos históricos (Meteostat API) y datos de movilidad (Uber Movement) mediante arquitectura Big Data Batch sobre AWS.
+Análisis cruzado entre datos climáticos históricos (Meteostat API) y datos de contagiados por COVID 19 mediante arquitectura Big Data Batch sobre AWS.
 
 ### 1.1 Requerimientos cumplidos
 
-- Captura automática de datos desde API (Meteostat) y archivos (Uber).
+- Captura automática de datos desde API (Meteostat) y archivos (COVID-19).
 - Ingesta automática a S3 (zona raw).
 - ETL automatizado en Spark sobre EMR (zona trusted).
 - Análisis descriptivo con SparkSQL y SparkML (zona refined).
@@ -49,7 +49,7 @@ Arquitectura batch en AWS:
   - `.env` para API keys y credenciales AWS
   - Scripts:
     - `ingest_meteostat.py`
-    - `upload_uber.py`
+    - `upload_covid.py`
     - `extract_db.py`
     - `etl_spark.py`
     - `etl_spark_multi_year.py`
@@ -81,19 +81,19 @@ spark-submit --deploy-mode client etl_spark.py > etl_output.log 2>&1
 spark-submit --deploy-mode client etl_spark_multi_year.py > multi_etl_output.log 2>&1
 
 # Verificar resultados
-aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_uber/
-aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/
+aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_covid/
+aws s3 ls s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/
 ```
 
 ---
 
 ## 5. Resultados esperados
 
-- Parquet resultantes en `trusted/` con join de datos Uber + Meteo
+- Parquet resultantes en `trusted/` con join de datos Covid + Meteo
 - Dashboards consultables vía Athena y/o scripts con Spark
 
 5. Ejecución del ETL Multi-Year en EMR
-Este script realiza la unión entre múltiples archivos históricos del clima (1973-2022) con los datos de movilidad de Uber para San Francisco. Guarda el resultado como Parquet en la zona trusted.
+Este script realiza la unión entre múltiples archivos históricos del clima (1973-2022) con los datos de contagiados por COVID-19 en Dinamarca. Guarda el resultado como Parquet en la zona trusted.
 
 📁 Script utilizado
 
@@ -108,7 +108,7 @@ Archivo Parquet en:
 
 pgsql
 
-s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/
+s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/
 ✅ Validación
 Puedes validar la escritura del parquet ejecutando el validador:
 
@@ -129,7 +129,7 @@ Imprime el esquema
 
 ## Resumen de hallazgos
 
-Tras realizar el cruce de datos entre tiempos de viaje (Uber Movement) y temperatura promedio (Meteostat) en San Francisco, se obtuvieron los siguientes hallazgos para el año con datos disponibles (2017):
+Tras realizar el cruce de datos entre contagiados por COVID-19 y temperatura promedio (Meteostat) en Dinamarca, se obtuvieron los siguientes hallazgos para el año con datos disponibles (2017):
 
 | Año  | Tiempo Promedio de Viaje (s) | Temperatura Promedio (°C) |
 |------|-------------------------------|----------------------------|
@@ -142,7 +142,7 @@ Esto indica que en condiciones climáticas templadas, los viajes promedio en cie
 ## Comando de consulta en Athena
 
 ```sql
--- Promedio de temperatura y tiempo de viaje por año
+-- Promedio de temperatura y contagiados por covid-19 por año
 SELECT
   year,
   ROUND(AVG(CAST("Mean Travel Time (Seconds)" AS DOUBLE)), 2) AS avg_travel_time,
@@ -176,8 +176,8 @@ spark.stop()
 
 ## Archivo origen
 
-- **Tabla analizada**: `proyecto3.joined_weather_uber_multiyear`
-- **Ubicación S3**: `s3://proyecto3bigdata/trusted/joined_weather_uber_multiyear/`
+- **Tabla analizada**: `proyecto3.joined_weather_covid_multiyear`
+- **Ubicación S3**: `s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/`
 ![image](https://github.com/user-attachments/assets/64434e62-55e0-41a3-903d-1255b59754cc)
 
 

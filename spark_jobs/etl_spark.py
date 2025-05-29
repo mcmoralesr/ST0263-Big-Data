@@ -10,7 +10,7 @@ spark.conf.set("spark.sql.legacy.timeParserPolicy", "LEGACY")
 try:
     # Leer archivos desde carpetas
     weather_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/weather/")
-    covid_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/covid/")
+    covid_df = spark.read.option("header", True).csv("s3://proyecto3bigdata/raw/covid19/")
 
     # Procesar weather
     weather_df = weather_df.withColumn("date", to_date(col("date"), "yyyy-MM-dd"))

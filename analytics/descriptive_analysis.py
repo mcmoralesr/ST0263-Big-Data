@@ -9,7 +9,7 @@ def create_spark_session():
 
 def load_data(spark):
     try:
-        df = spark.read.parquet("s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/")
+        df = spark.read.parquet("s3://proyecto3bigdata/trusted/joined_weather_covid/")
         print("Datos cargados correctamente.")
         print("Imprimiendo esquema de datos...")
         df.printSchema()

@@ -32,7 +32,7 @@ try:
     covid_stats = covid_df.groupBy("year").agg(
         spark_count("Patient_ID").alias("total_cases"),
         spark_count(when(col("Hospitalized") == "Yes", 1)).alias("hospitalized_cases"),
-        spark_count(when(col("Severity") == "Severe", 1)).alias("severe_cases"),
+        spark_count(when(col("Severity") == "High", 1)).alias("severe_cases"),
         spark_count(when(col("ICU_Admission") == "Yes", 1)).alias("icu_cases")
     )
 

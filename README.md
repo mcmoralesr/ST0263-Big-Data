@@ -1,4 +1,4 @@
-# Proyecto 3 – Análisis de Clima y Movilidad con Spark y AWS EMR - BIG DATA
+![image](https://github.com/user-attachments/assets/153effb4-cc73-4e8f-a174-a1b261872555)# Proyecto 3 – Análisis de Clima y Movilidad con Spark y AWS EMR - BIG DATA
 
 ## Información del curso
 Materia: ST0263 - Tópicos Especiales en Telemática  
@@ -193,6 +193,44 @@ spark.stop()
 - **Tabla analizada**: `proyecto3.joined_weather_covid_multiyear`
 - **Ubicación S3**: `s3://proyecto3bigdata/trusted/joined_weather_covid_multiyear/`
 ![image](https://github.com/user-attachments/assets/64434e62-55e0-41a3-903d-1255b59754cc)
+
+## Resultados del analisis con SparkSQL + PipeLines
+
+
+
+## Resultados de predicciones con SparkML
+El modelo se empezará a ejecutar:
+![image](https://github.com/user-attachments/assets/2734a06f-eff6-46f3-ba31-1ad82dab2718)  
+Este modelo busca predecir 4 variables importantes:
+* El número de contagiados
+* El numero de hospitalizados
+* El número de casos con severidad igual a High
+* El numero de casos que ICU (Clinical Cases in intensive care unit)
+
+## Datos actuales:
+![image](https://github.com/user-attachments/assets/7fbb61fd-e645-4985-b301-e33aca36524a)
+
+## Total_case_model (Número de contagiados)
+* RMSE: 74.62
+* R2: 0.9641  
+![image](https://github.com/user-attachments/assets/2aefcb0d-4651-49e9-922d-76ee5d648a53)
+
+Todos los resultados fueron guardados en S3, más especificamente en s3a://proyecto3bigdata/refined/ml_analysis/*
+
+## Hospitalized_model (Número de hospitalizados)
+* RMSE: 25.36
+* R2: 0.9544  
+![image](https://github.com/user-attachments/assets/878463a5-d61f-48eb-b025-688398fb1bdf)
+
+## severe_model (Casos severos altos)
+* RMSE: 1.00
+* R2: 0.9999  
+![image](https://github.com/user-attachments/assets/c0329c94-c51e-4fac-9640-899965cb8c46)
+
+## icu_model (Número de casos de ICU)
+* RMSE: 9.49
+* R2 : 0.8348  
+![image](https://github.com/user-attachments/assets/f23a3ce3-26a8-4b59-acd9-021250949a52)
 
 
 ## 6. Problemas encontrados

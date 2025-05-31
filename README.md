@@ -102,8 +102,8 @@ aws s3 ls s3://proyecto3bigdata/refined/covid_weather_summary/
 - Parquet resultantes en `trusted/` y `refined/`
 - Dashboard consultable por Athena y scripts con Spark
 
-5. Ejecución del ETL Multi-Year en EMR
-Este script realiza la unión entre múltiples archivos históricos del clima (1973-2022) con los datos de contagiados por COVID-19 en Dinamarca. Guarda el resultado como Parquet en la zona trusted.
+5. Ejecución del ETL en EMR
+Este script realiza la unión entre múltiples archivos históricos del clima (2022-2024) con los datos de contagiados por COVID-19 en Dinamarca. Guarda el resultado como Parquet en la zona trusted.
 
 ### Ejecución ETL Multi-Year
 
@@ -119,9 +119,13 @@ Validación con:
 
 ```bash
 spark-submit validate_parquet.py
-```
+```  
+![image](https://github.com/user-attachments/assets/8fed3349-9dba-48e1-8301-ce45599bc637)  
+![image](https://github.com/user-attachments/assets/49b8af2d-dbbb-48b7-85d6-6c1d25c57850)
 
-![image](https://github.com/user-attachments/assets/16238f43-5f26-45f8-8380-39d05250ce0a)
+
+
+
 
 ### Ejecución ETL Refined
 
@@ -144,12 +148,11 @@ aws s3 cp s3://proyecto3bigdata/bootstrap/emr_bootstrap.sh .
 
 ## 6. Resumen de hallazgos
 
-| Año  | Total Casos | Hospitalizados (%) | UCI (%) | Temp. Promedio |
-|------|--------------|---------------------|----------|-----------------|
-| 2022 | 884          | 28.6%               | 4.5%     | 14.08 °C        |
+![image](https://github.com/user-attachments/assets/1a8a977f-b039-4a46-bef6-ffef9a37e9b9)
 
 
-Esto indica que en condiciones climáticas templadas, los viajes promedio en ciertos sectores de la ciudad superaron los **28 minutos** en trayectos representativos.
+
+Esto indica que en condiciones climáticas frías, los casos de contagiados por COVID-19 aumentan más, esto se debe a que debido al frio, las gripes son más comunes, lo que disminuye las capacidades del sistema inmune, causando más probabilidad de contagiarse por otras enfermedades como el COVID-19.
 
 ---
 

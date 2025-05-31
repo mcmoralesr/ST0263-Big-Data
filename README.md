@@ -195,6 +195,19 @@ spark.stop()
 ![image](https://github.com/user-attachments/assets/64434e62-55e0-41a3-903d-1255b59754cc)
 
 ## Resultados del analisis con SparkSQL + PipeLines
+### Resumen
+![image](https://github.com/user-attachments/assets/cd1d9991-8401-42f4-8ddc-2bb8316a06be)
+
+### Analisis Descriptivo
+![image](https://github.com/user-attachments/assets/93d5f339-6d1d-45b9-8278-0e95aaf6b9df)
+
+### Análisis de Correlación
+![image](https://github.com/user-attachments/assets/b4c45480-85f2-4380-bf40-937949338789)
+
+### Análisis de Temperatura por Categoría
+![image](https://github.com/user-attachments/assets/59db158d-7cc5-49c8-bdf9-6627ff502bbd)
+
+Los archivos fueron guardados en S3 en refined/descriptive_analysis
 
 
 

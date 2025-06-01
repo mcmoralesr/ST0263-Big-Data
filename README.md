@@ -1,4 +1,4 @@
-# Proyecto 3 – Análisis de Clima y Movilidad con Spark y AWS EMR - BIG DATA
+# Proyecto 3 – Análisis de Clima y COVID-19 con Spark y AWS EMR - BIG DATA
 
 ## Información del curso
 Materia: ST0263 - Tópicos Especiales en Telemática  

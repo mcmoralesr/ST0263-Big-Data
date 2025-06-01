@@ -249,6 +249,32 @@ Todos los resultados fueron guardados en S3, más especificamente en s3a://proye
 ![image](https://github.com/user-attachments/assets/f23a3ce3-26a8-4b59-acd9-021250949a52)
 
 
+---
+## API REST - Predicciones con Lambda + API Gateway
+
+URL: https://9x473webmf.execute-api.us-east-1.amazonaws.com/prod/predictions
+
+Parámetro: opcional ?year=2023
+
+Ejemplo
+* curl "https://9x473webmf.execute-api.us-east-1.amazonaws.com/prod/predictions?year=2023"
+
+``` Respuests esperada:
+[
+  {
+    "year": 2023,
+    "total_cases": 1530,
+    "hospitalized_cases": 453,
+    "severe_cases": 380,
+    "icu_cases": 87,
+    "avg_temp": 9.995890410958902
+  }
+]
+```
+
+![image](https://github.com/user-attachments/assets/c3957a98-5d55-438b-9e1b-089524b76f7c)
+
+
 ## 6. Problemas encontrados
 
 - Falta de permisos IAM para lanzar steps EMR
